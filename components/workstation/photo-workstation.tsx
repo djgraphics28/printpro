@@ -26,8 +26,8 @@ function WorkstationShell() {
 
   return (
     <>
-      <div className="app-shell flex h-dvh min-h-0 flex-col overflow-hidden bg-[#eceef2] text-slate-900">
-        <header className="flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white px-4 py-3 md:px-6">
+      <div className="app-shell flex min-h-dvh flex-col bg-[#eceef2] text-slate-900 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white px-4 py-3 md:px-6 lg:static">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-xl bg-slate-900 text-white">
               <IdCard className="size-5" />
@@ -40,8 +40,8 @@ function WorkstationShell() {
           <SessionReset />
         </header>
 
-        <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col lg:flex-row">
-          <aside className="w-full shrink-0 overflow-y-auto border-b border-slate-200/80 bg-white lg:h-full lg:w-[380px] lg:border-r lg:border-b-0">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col lg:min-h-0 lg:flex-row">
+          <aside className="order-2 w-full border-t border-slate-200/80 bg-white lg:order-1 lg:h-full lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-r">
             <div className="flex flex-col gap-5 p-4 md:p-5">
               <section className="space-y-3">
                 <p className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
@@ -64,7 +64,7 @@ function WorkstationShell() {
             </div>
           </aside>
 
-          <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
+          <main className="order-1 flex min-h-[70vh] flex-col p-4 md:p-6 lg:order-2 lg:min-h-0 lg:flex-1 lg:overflow-hidden">
             <div className="mb-4">
               <StatusBar />
             </div>

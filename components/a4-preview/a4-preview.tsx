@@ -5,11 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { A4Sheet } from "@/components/a4-sheet/a4-sheet";
 import { useWorkstation } from "@/components/workstation/workstation-context";
 import { mmToCssPx } from "@/lib/units";
+import { cn } from "@/lib/utils";
+
+const DESKTOP_MIN_WIDTH = 1024;
 
 export function A4Preview() {
   const { state, layout } = useWorkstation();
   const frameRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -18,21 +22,33 @@ export function A4Preview() {
     }
 
     const update = () => {
-      const pad = 40;
+      const desktop = window.innerWidth >= DESKTOP_MIN_WIDTH;
+      setIsDesktop(desktop);
+
+      const pad = desktop ? 40 : 24;
       const sheetW = mmToCssPx(layout.paper.widthMm);
       const sheetH = mmToCssPx(layout.paper.heightMm);
-      const next = Math.min(
-        (frame.clientWidth - pad) / sheetW,
-        (frame.clientHeight - pad) / sheetH,
-        1,
-      );
+      const widthScale = (frame.clientWidth - pad) / sheetW;
+
+      const next = desktop
+        ? Math.min(
+            widthScale,
+            (frame.clientHeight - pad) / sheetH,
+            1,
+          )
+        : Math.min(Math.max(widthScale, 0.2), 1);
+
       setScale(Number.isFinite(next) && next > 0 ? next : 0.4);
     };
 
     update();
     const observer = new ResizeObserver(update);
     observer.observe(frame);
-    return () => observer.disconnect();
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
   }, [layout.paper.heightMm, layout.paper.widthMm]);
 
   const sheetW = mmToCssPx(layout.paper.widthMm);
@@ -41,10 +57,15 @@ export function A4Preview() {
   return (
     <div
       ref={frameRef}
-      className="preview-frame flex min-h-0 flex-1 items-center justify-center overflow-hidden"
+      className={cn(
+        "preview-frame flex w-full justify-center",
+        isDesktop
+          ? "min-h-0 flex-1 items-center overflow-hidden"
+          : "items-start overflow-x-auto overflow-y-auto",
+      )}
     >
       <div
-        className="overflow-hidden"
+        className={cn(!isDesktop && "my-2")}
         style={{
           width: sheetW * scale,
           height: sheetH * scale,
