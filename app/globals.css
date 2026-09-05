@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eceef2;
+  --foreground: #0f172a;
+  --paper: #ffffff;
 }
 
 @theme inline {
@@ -12,15 +13,73 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+/* Tailwind preflight shrinks images and breaks the cropper. */
+.reactEasyCrop_Container img,
+.reactEasyCrop_Image,
+.reactEasyCrop_Video {
+  max-width: none !important;
+  max-height: none !important;
+  height: auto !important;
+}
+
+/* Keep the print sheet rendered (not display:none) so browsers can print it. */
+.print-root {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  background: #fff;
+  pointer-events: none;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .app-shell {
+    display: none !important;
+  }
+
+  .print-root {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    overflow: hidden;
+    background: #ffffff;
+    pointer-events: auto;
+  }
+
+  .print-root .a4-sheet {
+    width: 210mm !important;
+    height: 297mm !important;
+    box-shadow: none !important;
+  }
 }
