@@ -29,11 +29,11 @@ export function PhotoEditor() {
           aspect={getPhotoAspect(photoSize)}
           objectFit="contain"
           showGrid
-          minZoom={1}
-          maxZoom={3}
+          minZoom={0.4}
+          maxZoom={4}
           cropShape="rect"
           zoomSpeed={1}
-          restrictPosition
+          restrictPosition={false}
           style={{}}
           classes={{}}
           mediaProps={{ alt: "Customer photo" }}
@@ -47,7 +47,8 @@ export function PhotoEditor() {
         />
       </div>
       <p className="text-[11px] text-slate-400">
-        Drag to reposition · scroll to zoom · crop follows {photoSize.dimensionLabel}
+        Drag to reposition · scroll or pinch to zoom out/in · crop follows{" "}
+        {photoSize.dimensionLabel}
       </p>
 
       <div className="space-y-2">
@@ -59,8 +60,8 @@ export function PhotoEditor() {
         </div>
         <Slider
           id="zoom"
-          min={1}
-          max={3}
+          min={0.4}
+          max={4}
           step={0.01}
           value={[state.transform.zoom]}
           onValueChange={([zoom]) => dispatch({ type: "SET_TRANSFORM", zoom })}

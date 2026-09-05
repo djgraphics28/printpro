@@ -64,7 +64,7 @@ function WorkstationShell() {
             </div>
           </aside>
 
-          <main className="order-1 flex min-h-[70vh] flex-col p-4 md:p-6 lg:order-2 lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+          <main className="order-1 flex h-[70vh] min-h-[28rem] flex-col p-4 md:p-6 lg:order-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:overflow-hidden">
             <div className="mb-4">
               <StatusBar />
             </div>
