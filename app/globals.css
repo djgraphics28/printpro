@@ -37,16 +37,10 @@ body {
   height: auto !important;
 }
 
-/* Keep the print sheet rendered (not display:none) so browsers can print it. */
+/* Hidden HTML source for iframe printing. Never show this on screen —
+   CSS mm sheets leak onto Windows / scaled displays and break the preview. */
 .print-root {
-  position: absolute;
-  left: -10000px;
-  top: 0;
-  width: 210mm;
-  height: 297mm;
-  overflow: hidden;
-  background: #fff;
-  pointer-events: none;
+  display: none !important;
 }
 
 @media print {
@@ -67,19 +61,6 @@ body {
   }
 
   .print-root {
-    position: static !important;
-    left: auto !important;
-    top: auto !important;
-    width: 210mm !important;
-    height: 297mm !important;
-    overflow: hidden;
-    background: #ffffff;
-    pointer-events: auto;
-  }
-
-  .print-root .a4-sheet {
-    width: 210mm !important;
-    height: 297mm !important;
-    box-shadow: none !important;
+    display: none !important;
   }
 }

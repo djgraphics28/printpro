@@ -110,7 +110,7 @@ export function A4Preview() {
         }}
       >
         <div
-          className="a4-preview-paper relative my-3 shrink-0 shadow-[0_18px_50px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/80"
+          className="a4-preview-paper relative my-3 shrink-0 overflow-hidden shadow-[0_18px_50px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/80"
           style={{
             width: displayWidth,
             height: displayHeight,

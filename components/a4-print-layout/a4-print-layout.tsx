@@ -7,7 +7,7 @@ export function A4PrintLayout() {
   const { state, layout } = useWorkstation();
 
   return (
-    <div className="print-root" aria-hidden>
+    <div className="print-root" hidden aria-hidden>
       <A4Sheet
         variant="print"
         layout={layout}
