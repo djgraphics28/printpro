@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { A4Sheet } from "@/components/a4-sheet/a4-sheet";
 import { Button } from "@/components/ui/button";
 import { useWorkstation } from "@/components/workstation/workstation-context";
-import { mmToCssPx } from "@/lib/units";
 
 const MIN_USER_ZOOM = 0.4;
 const MAX_USER_ZOOM = 2.5;
@@ -18,8 +17,10 @@ function clamp(value: number, min: number, max: number) {
 export function A4Preview() {
   const { state, layout } = useWorkstation();
   const frameRef = useRef<HTMLDivElement>(null);
-  const [fitScale, setFitScale] = useState(0.35);
+  const [fitSize, setFitSize] = useState({ width: 280, height: 396 });
   const [userZoom, setUserZoom] = useState(1);
+
+  const aspect = layout.paper.widthMm / layout.paper.heightMm;
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -29,12 +30,13 @@ export function A4Preview() {
 
     const update = () => {
       const pad = 32;
-      const sheetW = mmToCssPx(layout.paper.widthMm);
-      const sheetH = mmToCssPx(layout.paper.heightMm);
       const availW = Math.max(frame.clientWidth - pad, 80);
       const availH = Math.max(frame.clientHeight - pad, 80);
-      const next = Math.min(availW / sheetW, availH / sheetH, 1);
-      setFitScale(Number.isFinite(next) && next > 0 ? next : 0.35);
+      const width = Math.min(availW, availH * aspect);
+      const height = width / aspect;
+      if (Number.isFinite(width) && width > 0) {
+        setFitSize({ width, height });
+      }
     };
 
     update();
@@ -45,11 +47,10 @@ export function A4Preview() {
       observer.disconnect();
       window.removeEventListener("resize", update);
     };
-  }, [layout.paper.heightMm, layout.paper.widthMm]);
+  }, [aspect]);
 
-  const scale = fitScale * userZoom;
-  const sheetW = mmToCssPx(layout.paper.widthMm);
-  const sheetH = mmToCssPx(layout.paper.heightMm);
+  const displayWidth = fitSize.width * userZoom;
+  const displayHeight = fitSize.height * userZoom;
 
   function zoomBy(delta: number) {
     setUserZoom((current) => clamp(current + delta, MIN_USER_ZOOM, MAX_USER_ZOOM));
@@ -109,29 +110,22 @@ export function A4Preview() {
         }}
       >
         <div
-          className="my-3"
+          className="a4-preview-paper relative my-3 shrink-0 shadow-[0_18px_50px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/80"
           style={{
-            width: sheetW * scale,
-            height: sheetH * scale,
+            width: displayWidth,
+            height: displayHeight,
           }}
         >
-          <div
-            className="a4-preview-scale origin-top-left"
-            style={{
-              width: sheetW,
-              height: sheetH,
-              transform: `scale(${scale})`,
-            }}
-          >
-            <div className="a4-preview-paper relative shadow-[0_18px_50px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/80">
-              <A4Sheet layout={layout} imageUrl={state.cropped?.url ?? null} />
-              {!state.cropped ? (
-                <div className="pointer-events-none absolute inset-x-0 bottom-[12%] text-center text-[3.2mm] text-slate-400">
-                  Upload a customer photo to preview the print
-                </div>
-              ) : null}
+          <A4Sheet
+            variant="preview"
+            layout={layout}
+            imageUrl={state.cropped?.url ?? null}
+          />
+          {!state.cropped ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-[12%] text-center text-[2.2%] text-slate-400">
+              Upload a customer photo to preview the print
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -8,7 +8,11 @@ export function A4PrintLayout() {
 
   return (
     <div className="print-root" aria-hidden>
-      <A4Sheet layout={layout} imageUrl={state.cropped?.url ?? null} />
+      <A4Sheet
+        variant="print"
+        layout={layout}
+        imageUrl={state.cropped?.url ?? null}
+      />
     </div>
   );
 }
