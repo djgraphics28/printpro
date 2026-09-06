@@ -25,6 +25,10 @@ export const CUTTING_GUIDE: CuttingGuideStyle = {
 export const MIN_PRINT_DPI = 200;
 export const TARGET_PRINT_DPI = 300;
 
+/** Cropper zoom range — low enough for large phone photos, high enough for tight face crops. */
+export const CROP_MIN_ZOOM = 0.1;
+export const CROP_MAX_ZOOM = 8;
+
 export const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",

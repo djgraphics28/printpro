@@ -2,6 +2,7 @@ import {
   ACCEPTED_IMAGE_EXTENSIONS,
   ACCEPTED_IMAGE_TYPES,
   MIN_PRINT_DPI,
+  TARGET_PRINT_DPI,
 } from "@/lib/constants";
 import type { CropArea, PhotoSize } from "@/types/photo";
 
@@ -52,15 +53,7 @@ function rotatedBounds(width: number, height: number, rotation: number) {
   };
 }
 
-/**
- * Crop + rotate at native pixel resolution. No extra JPEG recompression.
- */
-export async function cropImageToBlob(
-  imageSrc: string,
-  pixelCrop: CropArea,
-  rotation = 0,
-): Promise<Blob> {
-  const image = await loadHtmlImage(imageSrc);
+function drawRotatedImage(image: HTMLImageElement, rotation: number) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -70,13 +63,34 @@ export async function cropImageToBlob(
   const bounds = rotatedBounds(image.naturalWidth, image.naturalHeight, rotation);
   canvas.width = Math.max(1, Math.round(bounds.width));
   canvas.height = Math.max(1, Math.round(bounds.height));
-
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.translate(canvas.width / 2, canvas.height / 2);
   ctx.rotate(toRadians(rotation));
   ctx.translate(-image.naturalWidth / 2, -image.naturalHeight / 2);
   ctx.drawImage(image, 0, 0);
+  return canvas;
+}
+
+export function getPrintPixelSize(photoSize: PhotoSize, dpi = TARGET_PRINT_DPI) {
+  return {
+    width: Math.max(1, Math.round(photoSize.widthInches * dpi)),
+    height: Math.max(1, Math.round(photoSize.heightInches * dpi)),
+  };
+}
+
+/**
+ * Crop using react-easy-crop pixel coords (same helper the library documents).
+ * Scale up to print DPI when the crop is smaller than the target. Never downscale.
+ */
+export async function cropImageToBlob(
+  imageSrc: string,
+  pixelCrop: CropArea,
+  rotation = 0,
+  photoSize?: PhotoSize,
+): Promise<Blob> {
+  const image = await loadHtmlImage(imageSrc);
+  const source = rotation === 0 ? image : drawRotatedImage(image, rotation);
 
   const cropped = document.createElement("canvas");
   const croppedCtx = cropped.getContext("2d");
@@ -84,12 +98,19 @@ export async function cropImageToBlob(
     throw new Error("Canvas is not available");
   }
 
-  cropped.width = Math.max(1, Math.round(pixelCrop.width));
-  cropped.height = Math.max(1, Math.round(pixelCrop.height));
+  const sourceWidth = Math.max(1, pixelCrop.width);
+  const sourceHeight = Math.max(1, pixelCrop.height);
+  const printTarget = photoSize ? getPrintPixelSize(photoSize) : null;
+  const scale = printTarget
+    ? Math.max(1, printTarget.width / sourceWidth, printTarget.height / sourceHeight)
+    : 1;
+
+  cropped.width = Math.max(1, Math.round(sourceWidth * scale));
+  cropped.height = Math.max(1, Math.round(sourceHeight * scale));
   croppedCtx.imageSmoothingEnabled = true;
   croppedCtx.imageSmoothingQuality = "high";
   croppedCtx.drawImage(
-    canvas,
+    source,
     pixelCrop.x,
     pixelCrop.y,
     pixelCrop.width,

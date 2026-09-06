@@ -252,7 +252,7 @@ export function WorkstationProvider({ children }: { children: ReactNode }) {
     const useWhite = state.whiteBackground;
     const timer = window.setTimeout(() => {
       setProcessing(true);
-      cropImageToBlob(imageUrl, crop, totalRotation)
+      cropImageToBlob(imageUrl, crop, totalRotation, photoSize)
         .then(async (croppedBlob) => {
           let blob = croppedBlob;
           if (useWhite) {
@@ -317,6 +317,7 @@ export function WorkstationProvider({ children }: { children: ReactNode }) {
     state.transform.croppedAreaPixels,
     totalRotation,
     state.whiteBackground,
+    photoSize,
   ]);
 
   useEffect(() => {

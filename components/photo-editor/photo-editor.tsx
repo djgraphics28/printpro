@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useWorkstation } from "@/components/workstation/workstation-context";
+import { CROP_MAX_ZOOM, CROP_MIN_ZOOM } from "@/lib/constants";
 import { getPhotoAspect } from "@/lib/photo-sizes";
 import { getTotalRotation } from "@/types/photo";
 
@@ -20,7 +21,7 @@ export function PhotoEditor() {
 
   return (
     <div className="space-y-3">
-      <div className="relative h-64 overflow-hidden rounded-xl bg-slate-950">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-950">
         <Cropper
           image={state.image.url}
           crop={state.transform.crop}
@@ -29,11 +30,12 @@ export function PhotoEditor() {
           aspect={getPhotoAspect(photoSize)}
           objectFit="contain"
           showGrid
-          minZoom={0.4}
-          maxZoom={4}
+          minZoom={CROP_MIN_ZOOM}
+          maxZoom={CROP_MAX_ZOOM}
           cropShape="rect"
           zoomSpeed={1}
           restrictPosition={false}
+          roundCropAreaPixels
           style={{}}
           classes={{}}
           mediaProps={{ alt: "Customer photo" }}
@@ -41,13 +43,16 @@ export function PhotoEditor() {
           disableAutomaticStylesInjection
           onCropChange={(crop) => dispatch({ type: "SET_TRANSFORM", crop })}
           onZoomChange={(zoom) => dispatch({ type: "SET_TRANSFORM", zoom })}
+          onCropAreaChange={(_, croppedAreaPixels) =>
+            dispatch({ type: "SET_TRANSFORM", croppedAreaPixels })
+          }
           onCropComplete={(_, croppedAreaPixels) =>
             dispatch({ type: "SET_TRANSFORM", croppedAreaPixels })
           }
         />
       </div>
       <p className="text-[11px] text-slate-400">
-        Drag to reposition · scroll or pinch to zoom out/in · crop follows{" "}
+        Drag to reposition · scroll or pinch to zoom 0.1×–8× · crop follows{" "}
         {photoSize.dimensionLabel}
       </p>
 
@@ -60,8 +65,8 @@ export function PhotoEditor() {
         </div>
         <Slider
           id="zoom"
-          min={0.4}
-          max={4}
+          min={CROP_MIN_ZOOM}
+          max={CROP_MAX_ZOOM}
           step={0.01}
           value={[state.transform.zoom]}
           onValueChange={([zoom]) => dispatch({ type: "SET_TRANSFORM", zoom })}

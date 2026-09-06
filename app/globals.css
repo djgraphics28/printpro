@@ -28,13 +28,16 @@ body {
   margin: 0;
 }
 
-/* Tailwind preflight shrinks images and breaks the cropper. */
-.reactEasyCrop_Container img,
+/*
+  Tailwind sets `img { max-width: 100%; height: auto }`.
+  Undo that on the cropper media only — do not override
+  .reactEasyCrop_Contain / Cover, which scale large photos to the crop box.
+  Forcing max-width/height: none made any image larger than ~225px
+  render at native size, so the A4 preview no longer matched the crop.
+*/
 .reactEasyCrop_Image,
 .reactEasyCrop_Video {
-  max-width: none !important;
-  max-height: none !important;
-  height: auto !important;
+  height: unset;
 }
 
 /* Hidden HTML source for iframe printing. Never show this on screen —
