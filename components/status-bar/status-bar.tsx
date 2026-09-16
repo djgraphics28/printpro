@@ -13,7 +13,9 @@ function Chip({ children }: { children: ReactNode }) {
 }
 
 export function StatusBar() {
-  const { layout, lowQuality, processing, state } = useWorkstation();
+  const { layout, lowQuality, processing, state, photoSize } = useWorkstation();
+  const photoCount = state.photos.length;
+  const multi = photoSize.allowsMultiplePhotos;
 
   return (
     <div className="space-y-2">
@@ -22,6 +24,11 @@ export function StatusBar() {
           {layout.paper.name} • {layout.paper.widthMm} × {layout.paper.heightMm} mm
         </Chip>
         <Chip>{layout.photoSize.dimensionLabel}</Chip>
+        {multi ? (
+          <Chip>
+            {photoCount} {photoCount === 1 ? "photo" : "photos"}
+          </Chip>
+        ) : null}
         <Chip>
           {layout.quantity} {layout.quantity === 1 ? "copy" : "copies"}
         </Chip>
@@ -41,14 +48,16 @@ export function StatusBar() {
       </div>
       {processing ? (
         <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">
-          Removing background and applying white… This can take a few seconds
-          the first time.
+          {photoCount > 1
+            ? "Preparing photos… Removing backgrounds can take a few seconds the first time."
+            : "Removing background and applying white… This can take a few seconds the first time."}
         </p>
       ) : null}
       {lowQuality ? (
         <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          This image may appear low quality when printed. For best results, use a
-          higher-resolution photo.
+          {photoCount > 1
+            ? "Some photos may appear low quality when printed. For best results, use higher-resolution photos."
+            : "This image may appear low quality when printed. For best results, use a higher-resolution photo."}
         </p>
       ) : null}
     </div>

@@ -7,94 +7,145 @@ import { Button } from "@/components/ui/button";
 import { useWorkstation } from "@/components/workstation/workstation-context";
 import { isAcceptedImageFile, readImageFile } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
+import type { CustomerImage } from "@/types/photo";
 
-export function PhotoUploader() {
-  const { state, dispatch } = useWorkstation();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+const ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
-  async function handleFiles(files: FileList | null) {
-    const file = files?.[0];
-    if (!file) {
-      return;
-    }
+function isHeic(file: File): boolean {
+  const name = file.name.toLowerCase();
+  return (
+    name.endsWith(".heic") || name.endsWith(".heif") || file.type === "image/heic"
+  );
+}
 
-    const name = file.name.toLowerCase();
-    if (name.endsWith(".heic") || name.endsWith(".heif") || file.type === "image/heic") {
-      dispatch({
-        type: "SET_UPLOAD_ERROR",
-        message:
-          "iPhone HEIC photos are not supported. Export or share the photo as JPG, PNG, or WEBP.",
-      });
-      return;
+/**
+ * Loads dropped or picked files, keeping every one that decodes and reporting a
+ * single message for the rest.
+ */
+async function loadImageBatch(files: File[]): Promise<{
+  images: CustomerImage[];
+  error: string | null;
+}> {
+  const images: CustomerImage[] = [];
+  let heicCount = 0;
+  let rejectedCount = 0;
+
+  for (const file of files) {
+    if (isHeic(file)) {
+      heicCount += 1;
+      continue;
     }
 
     if (!isAcceptedImageFile(file)) {
-      dispatch({
-        type: "SET_UPLOAD_ERROR",
-        message: "Unsupported image format. Please use JPG, PNG, or WEBP.",
-      });
-      return;
+      rejectedCount += 1;
+      continue;
     }
 
     try {
       const loaded = await readImageFile(file);
-      dispatch({
-        type: "SET_IMAGE",
-        image: { file, ...loaded },
-      });
+      images.push({ file, ...loaded });
     } catch {
-      dispatch({
-        type: "SET_UPLOAD_ERROR",
-        message: "Unsupported image format. Please use JPG, PNG, or WEBP.",
-      });
+      rejectedCount += 1;
     }
   }
 
-  if (state.image) {
+  let error: string | null = null;
+  if (heicCount > 0 && rejectedCount === 0 && images.length === 0) {
+    error =
+      "iPhone HEIC photos are not supported. Export or share the photo as JPG, PNG, or WEBP.";
+  } else if (heicCount > 0 || rejectedCount > 0) {
+    const skipped = heicCount + rejectedCount;
+    error =
+      images.length > 0
+        ? `Skipped ${skipped} ${skipped === 1 ? "file" : "files"} — only JPG, PNG, and WEBP are supported.`
+        : "Unsupported image format. Please use JPG, PNG, or WEBP.";
+  }
+
+  return { images, error };
+}
+
+export function PhotoUploader() {
+  const { state, dispatch, photoSize } = useWorkstation();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const multiple = photoSize.allowsMultiplePhotos;
+  const photo = state.photos[0] ?? null;
+
+  async function handleFiles(files: FileList | null) {
+    const list = files ? Array.from(files) : [];
+    if (list.length === 0) {
+      return;
+    }
+
+    const { images, error } = await loadImageBatch(list);
+
+    if (images.length > 0) {
+      dispatch({ type: "ADD_PHOTOS", images });
+    }
+    if (error) {
+      dispatch({ type: "SET_UPLOAD_ERROR", message: error });
+    }
+  }
+
+  const fileInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      accept={ACCEPT}
+      multiple={multiple}
+      className="hidden"
+      onChange={(event) => {
+        void handleFiles(event.target.files);
+        event.target.value = "";
+      }}
+    />
+  );
+
+  // Single-photo sizes keep the compact summary card with Replace / Remove.
+  if (!multiple && photo) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-slate-900">
-            {state.image.file.name}
-          </p>
-          <p className="text-xs text-slate-500">
-            {state.image.width} × {state.image.height} px
-          </p>
+      <div>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-slate-900">
+              {photo.image.file.name}
+            </p>
+            <p className="text-xs text-slate-500">
+              {photo.image.width} × {photo.image.height} px
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Replace />
+              Replace
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => dispatch({ type: "REMOVE_PHOTO", id: photo.id })}
+            >
+              <Trash2 />
+              Remove
+            </Button>
+          </div>
+          {fileInput}
         </div>
-        <div className="flex shrink-0 gap-1.5">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => inputRef.current?.click()}
-          >
-            <Replace />
-            Replace
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => dispatch({ type: "CLEAR_IMAGE" })}
-          >
-            <Trash2 />
-            Remove
-          </Button>
-        </div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-          className="hidden"
-          onChange={(event) => {
-            void handleFiles(event.target.files);
-            event.target.value = "";
-          }}
-        />
+        {state.uploadError ? (
+          <p className="mt-2 text-sm text-red-600">{state.uploadError}</p>
+        ) : null}
       </div>
     );
   }
+
+  const hasPhotos = state.photos.length > 0;
+  const compact = multiple && hasPhotos;
 
   return (
     <div>
@@ -112,13 +163,19 @@ export function PhotoUploader() {
           void handleFiles(event.dataTransfer.files);
         }}
         className={cn(
-          "flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-10 text-center transition-colors",
+          "flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed text-center transition-colors",
+          compact ? "px-4 py-4" : "px-4 py-10",
           isDragging
             ? "border-slate-900 bg-slate-100"
             : "border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-white",
         )}
       >
-        <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-white shadow-sm">
+        <span
+          className={cn(
+            "flex items-center justify-center rounded-full bg-white shadow-sm",
+            compact ? "mb-2 size-9" : "mb-3 size-12",
+          )}
+        >
           {isDragging ? (
             <Upload className="size-5 text-slate-800" />
           ) : (
@@ -126,25 +183,24 @@ export function PhotoUploader() {
           )}
         </span>
         <span className="text-[15px] font-semibold text-slate-900">
-          Upload Customer Photo
+          {compact
+            ? "Add More Photos"
+            : multiple
+              ? "Upload Customer Photos"
+              : "Upload Customer Photo"}
         </span>
         <span className="mt-1 text-sm text-slate-500">
-          Drag & drop or click to browse
+          {multiple
+            ? "Drag & drop or click to browse — pick several at once"
+            : "Drag & drop or click to browse"}
         </span>
-        <span className="mt-3 text-[11px] font-medium tracking-wide text-slate-400 uppercase">
-          JPG • PNG • WEBP
-        </span>
+        {compact ? null : (
+          <span className="mt-3 text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+            JPG • PNG • WEBP
+          </span>
+        )}
       </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
-        className="hidden"
-        onChange={(event) => {
-          void handleFiles(event.target.files);
-          event.target.value = "";
-        }}
-      />
+      {fileInput}
       {state.uploadError ? (
         <p className="mt-2 text-sm text-red-600">{state.uploadError}</p>
       ) : null}

@@ -1,22 +1,20 @@
 import type {
-  CroppedImage,
-  CustomerImage,
   NameAlignment,
   NamePosition,
+  PhotoEntry,
   PhotoTransform,
 } from "./photo";
 
 export type WorkstationState = {
-  image: CustomerImage | null;
-  cropped: CroppedImage | null;
-  transform: PhotoTransform;
+  /** Every uploaded photo, in sheet order. */
+  photos: PhotoEntry[];
+  /** The photo the cropper and name field currently edit. */
+  activePhotoId: string | null;
   photoSizeId: string;
-  quantity: number;
   showCuttingGuides: boolean;
   whiteBackground: boolean;
   backgroundError: string | null;
   addName: boolean;
-  customerName: string;
   nameFontSizeMm: number;
   nameAlignment: NameAlignment;
   namePosition: NamePosition;

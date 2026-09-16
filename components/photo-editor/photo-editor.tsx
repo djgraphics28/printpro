@@ -13,20 +13,35 @@ import { getPhotoAspect } from "@/lib/photo-sizes";
 import { getTotalRotation } from "@/types/photo";
 
 export function PhotoEditor() {
-  const { state, dispatch, photoSize } = useWorkstation();
+  const { state, dispatch, photoSize, activePhoto } = useWorkstation();
 
-  if (!state.image) {
+  if (!activePhoto) {
     return null;
   }
 
+  const { id, image, transform } = activePhoto;
+  const position = state.photos.findIndex((photo) => photo.id === id) + 1;
+
   return (
     <div className="space-y-3">
+      {photoSize.allowsMultiplePhotos && state.photos.length > 1 ? (
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-xs font-medium text-slate-600">
+            Editing {activePhoto.name.trim() || image.file.name}
+          </p>
+          <p className="shrink-0 text-[11px] text-slate-400">
+            Photo {position} of {state.photos.length}
+          </p>
+        </div>
+      ) : null}
+
       <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-950">
         <Cropper
-          image={state.image.url}
-          crop={state.transform.crop}
-          zoom={state.transform.zoom}
-          rotation={getTotalRotation(state.transform)}
+          key={id}
+          image={image.url}
+          crop={transform.crop}
+          zoom={transform.zoom}
+          rotation={getTotalRotation(transform)}
           aspect={getPhotoAspect(photoSize)}
           objectFit="contain"
           showGrid
@@ -41,13 +56,13 @@ export function PhotoEditor() {
           mediaProps={{ alt: "Customer photo" }}
           cropperProps={{}}
           disableAutomaticStylesInjection
-          onCropChange={(crop) => dispatch({ type: "SET_TRANSFORM", crop })}
-          onZoomChange={(zoom) => dispatch({ type: "SET_TRANSFORM", zoom })}
+          onCropChange={(crop) => dispatch({ type: "SET_TRANSFORM", id, crop })}
+          onZoomChange={(zoom) => dispatch({ type: "SET_TRANSFORM", id, zoom })}
           onCropAreaChange={(_, croppedAreaPixels) =>
-            dispatch({ type: "SET_TRANSFORM", croppedAreaPixels })
+            dispatch({ type: "SET_TRANSFORM", id, croppedAreaPixels })
           }
           onCropComplete={(_, croppedAreaPixels) =>
-            dispatch({ type: "SET_TRANSFORM", croppedAreaPixels })
+            dispatch({ type: "SET_TRANSFORM", id, croppedAreaPixels })
           }
         />
       </div>
@@ -60,7 +75,7 @@ export function PhotoEditor() {
         <div className="flex items-center justify-between">
           <Label htmlFor="zoom">Zoom</Label>
           <span className="text-xs text-slate-500">
-            {state.transform.zoom.toFixed(2)}×
+            {transform.zoom.toFixed(2)}×
           </span>
         </div>
         <Slider
@@ -68,8 +83,8 @@ export function PhotoEditor() {
           min={CROP_MIN_ZOOM}
           max={CROP_MAX_ZOOM}
           step={0.01}
-          value={[state.transform.zoom]}
-          onValueChange={([zoom]) => dispatch({ type: "SET_TRANSFORM", zoom })}
+          value={[transform.zoom]}
+          onValueChange={([zoom]) => dispatch({ type: "SET_TRANSFORM", id, zoom })}
         />
       </div>
 
@@ -77,7 +92,7 @@ export function PhotoEditor() {
         <div className="flex items-center justify-between">
           <Label htmlFor="rotate">Straighten</Label>
           <span className="text-xs text-slate-500">
-            {Math.round(state.transform.rotation)}°
+            {Math.round(transform.rotation)}°
           </span>
         </div>
         <Slider
@@ -85,9 +100,9 @@ export function PhotoEditor() {
           min={-45}
           max={45}
           step={1}
-          value={[state.transform.rotation]}
+          value={[transform.rotation]}
           onValueChange={([rotation]) =>
-            dispatch({ type: "SET_TRANSFORM", rotation })
+            dispatch({ type: "SET_TRANSFORM", id, rotation })
           }
         />
       </div>
@@ -101,7 +116,8 @@ export function PhotoEditor() {
           onClick={() =>
             dispatch({
               type: "SET_TRANSFORM",
-              orientation: state.transform.orientation - 90,
+              id,
+              orientation: transform.orientation - 90,
             })
           }
         >
@@ -116,7 +132,8 @@ export function PhotoEditor() {
           onClick={() =>
             dispatch({
               type: "SET_TRANSFORM",
-              orientation: state.transform.orientation + 90,
+              id,
+              orientation: transform.orientation + 90,
             })
           }
         >
@@ -127,7 +144,7 @@ export function PhotoEditor() {
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => dispatch({ type: "RESET_TRANSFORM" })}
+          onClick={() => dispatch({ type: "RESET_TRANSFORM", id })}
         >
           Reset
         </Button>

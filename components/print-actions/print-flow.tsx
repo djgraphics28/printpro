@@ -23,6 +23,7 @@ import { NewSessionDialog } from "@/components/session-reset/session-reset";
 import { useWorkstation } from "@/components/workstation/workstation-context";
 import { PRINT_REMINDER } from "@/lib/constants";
 import { downloadA4Pdf } from "@/lib/download";
+import { croppedBlobsByPhotoId } from "@/lib/sheet-images";
 import { printA4Sheet } from "@/lib/print-utils";
 import { getBlockingError } from "@/lib/validation";
 
@@ -71,17 +72,18 @@ export function PrintFlowProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!state.cropped) {
+    const blobs = croppedBlobsByPhotoId(state.photos);
+    if (Object.keys(blobs).length === 0) {
       return;
     }
 
     setBusy(true);
-    void downloadA4Pdf(layout, state.cropped.blob)
+    void downloadA4Pdf(layout, blobs)
       .catch(() => {
         showError("Could not generate the A4 PDF. Please try again.");
       })
       .finally(() => setBusy(false));
-  }, [issues, layout, showError, state.cropped]);
+  }, [issues, layout, showError, state.photos]);
 
   const requestNewSession = useCallback(() => {
     setSessionOpen(true);
@@ -164,7 +166,7 @@ export function PrintActions() {
   const { requestPrint, requestDownload, busy } = usePrintFlow();
   const { state, layout, issues } = useWorkstation();
   const blocking = getBlockingError(issues);
-  const ready = Boolean(state.cropped) && layout.fits && !blocking;
+  const ready = state.photos.length > 0 && layout.fits && !blocking;
 
   return (
     <div className="space-y-2">

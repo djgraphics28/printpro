@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { A4Sheet } from "@/components/a4-sheet/a4-sheet";
 import { Button } from "@/components/ui/button";
 import { useWorkstation } from "@/components/workstation/workstation-context";
+import { croppedUrlsByPhotoId } from "@/lib/sheet-images";
 
 const MIN_USER_ZOOM = 0.4;
 const MAX_USER_ZOOM = 2.5;
@@ -15,7 +16,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 export function A4Preview() {
-  const { state, layout } = useWorkstation();
+  const { state, layout, photoSize } = useWorkstation();
   const frameRef = useRef<HTMLDivElement>(null);
   const [fitSize, setFitSize] = useState({ width: 280, height: 396 });
   const [userZoom, setUserZoom] = useState(1);
@@ -119,11 +120,13 @@ export function A4Preview() {
           <A4Sheet
             variant="preview"
             layout={layout}
-            imageUrl={state.cropped?.url ?? null}
+            images={croppedUrlsByPhotoId(state.photos)}
           />
-          {!state.cropped ? (
+          {state.photos.length === 0 ? (
             <div className="pointer-events-none absolute inset-x-0 bottom-[12%] text-center text-[2.2%] text-slate-400">
-              Upload a customer photo to preview the print
+              {photoSize.allowsMultiplePhotos
+                ? "Upload customer photos to preview the print"
+                : "Upload a customer photo to preview the print"}
             </div>
           ) : null}
         </div>

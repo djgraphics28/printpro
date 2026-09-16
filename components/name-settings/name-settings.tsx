@@ -24,7 +24,8 @@ const POSITIONS: { id: NamePosition; label: string }[] = [
 ];
 
 export function NameSettings() {
-  const { state, dispatch } = useWorkstation();
+  const { state, dispatch, photoSize } = useWorkstation();
+  const singlePhoto = photoSize.allowsMultiplePhotos ? null : state.photos[0];
 
   return (
     <div className="space-y-3">
@@ -43,18 +44,31 @@ export function NameSettings() {
 
       {state.addName ? (
         <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="customer-name">Customer Name</Label>
-            <Input
-              id="customer-name"
-              value={state.customerName}
-              placeholder="Juan Dela Cruz"
-              autoComplete="off"
-              onChange={(event) =>
-                dispatch({ type: "SET_NAME", name: event.target.value })
-              }
-            />
-          </div>
+          {photoSize.allowsMultiplePhotos ? (
+            <p className="text-xs text-slate-500">
+              Type each customer&apos;s name in the photo list above — every
+              photo prints its own name.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              <Label htmlFor="customer-name">Customer Name</Label>
+              <Input
+                id="customer-name"
+                value={singlePhoto?.name ?? ""}
+                placeholder="Juan Dela Cruz"
+                autoComplete="off"
+                disabled={!singlePhoto}
+                onChange={(event) =>
+                  singlePhoto &&
+                  dispatch({
+                    type: "SET_PHOTO_NAME",
+                    id: singlePhoto.id,
+                    name: event.target.value,
+                  })
+                }
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">

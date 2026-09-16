@@ -15,6 +15,7 @@ export const PHOTO_SIZES: PhotoSize[] = [
     preferredColumns: 4,
     shortcut: "1",
     dimensionLabel: "2 × 2 inch",
+    allowsMultiplePhotos: false,
   },
   {
     id: "1x1",
@@ -25,6 +26,7 @@ export const PHOTO_SIZES: PhotoSize[] = [
     preferredColumns: 8,
     shortcut: "2",
     dimensionLabel: "1 × 1 inch",
+    allowsMultiplePhotos: false,
   },
   {
     id: "passport",
@@ -36,6 +38,19 @@ export const PHOTO_SIZES: PhotoSize[] = [
     preferredColumns: 4,
     shortcut: "3",
     dimensionLabel: "35 × 45 mm",
+    allowsMultiplePhotos: false,
+  },
+  {
+    id: "wallet",
+    name: "Wallet",
+    widthInches: 2.5,
+    heightInches: 3.5,
+    defaultQuantity: 6,
+    preferredColumns: 3,
+    shortcut: "4",
+    dimensionLabel: "2.5 × 3.5 inch",
+    // Wallet prints are big enough that mixing customers on one sheet is worth it.
+    allowsMultiplePhotos: true,
   },
 ];
 

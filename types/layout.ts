@@ -14,6 +14,10 @@ export type CuttingGuideStyle = {
 
 export type PhotoSlot = {
   index: number;
+  /** Which uploaded photo prints in this slot. */
+  photoId: string;
+  /** Name printed on this slot — per photo, not per sheet. */
+  name: string;
   photoXMm: number;
   photoYMm: number;
   photoWidthMm: number;
@@ -25,9 +29,16 @@ export type PhotoSlot = {
   overflows: boolean;
 };
 
+export type SheetCapacity = {
+  maxColumns: number;
+  maxRows: number;
+  maxQuantity: number;
+};
+
 export type A4Layout = {
   paper: PaperSpec;
   photoSize: PhotoSize;
+  /** Total copies across every photo on the sheet. */
   quantity: number;
   columns: number;
   rows: number;
@@ -41,7 +52,6 @@ export type A4Layout = {
   usagePercent: number;
   fits: boolean;
   showName: boolean;
-  name: string;
   nameAlignment: NameAlignment;
   nameFontSizeMm: number;
   showCuttingGuides: boolean;
@@ -49,11 +59,17 @@ export type A4Layout = {
   slots: PhotoSlot[];
 };
 
+/** One photo's share of the sheet. */
+export type LayoutItem = {
+  photoId: string;
+  quantity: number;
+  name: string;
+};
+
 export type LayoutInput = {
   photoSize: PhotoSize;
-  quantity: number;
+  items: LayoutItem[];
   showName: boolean;
-  name: string;
   nameFontSizeMm: number;
   nameAlignment: NameAlignment;
   namePosition: "below" | "above";

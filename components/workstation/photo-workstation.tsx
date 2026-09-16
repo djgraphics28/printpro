@@ -8,21 +8,26 @@ import { CuttingGuideSettings } from "@/components/cutting-guide-settings/cuttin
 import { WhiteBackgroundSettings } from "@/components/white-background-settings/white-background-settings";
 import { NameSettings } from "@/components/name-settings/name-settings";
 import { PhotoEditor } from "@/components/photo-editor/photo-editor";
+import { PhotoList } from "@/components/photo-list/photo-list";
 import { PhotoSizeSelector } from "@/components/photo-size-selector/photo-size-selector";
 import { PhotoUploader } from "@/components/photo-uploader/photo-uploader";
+import { QuantitySelector } from "@/components/quantity-selector/quantity-selector";
 import {
   PrintActions,
   PrintFlowProvider,
 } from "@/components/print-actions/print-flow";
-import { QuantitySelector } from "@/components/quantity-selector/quantity-selector";
 import { SessionReset } from "@/components/session-reset/session-reset";
 import { StatusBar } from "@/components/status-bar/status-bar";
 import { Separator } from "@/components/ui/separator";
 import { useWorkstationShortcuts } from "@/components/workstation/use-shortcuts";
-import { WorkstationProvider } from "@/components/workstation/workstation-context";
+import {
+  useWorkstation,
+  WorkstationProvider,
+} from "@/components/workstation/workstation-context";
 
 function WorkstationShell() {
   useWorkstationShortcuts();
+  const { photoSize } = useWorkstation();
 
   return (
     <>
@@ -53,7 +58,11 @@ function WorkstationShell() {
 
               <Separator />
               <PhotoSizeSelector />
-              <QuantitySelector />
+              {photoSize.allowsMultiplePhotos ? (
+                <PhotoList />
+              ) : (
+                <QuantitySelector />
+              )}
               <Separator />
               <CuttingGuideSettings />
               <WhiteBackgroundSettings />

@@ -132,6 +132,37 @@ export async function cropImageToBlob(
   return blob;
 }
 
+/**
+ * The centred, largest crop of `image` matching the photo size's aspect — the
+ * same rectangle react-easy-crop starts from. Photos waiting their turn in the
+ * editor are rendered from this, so every slot prints without being visited.
+ */
+export function defaultCropArea(
+  image: { width: number; height: number },
+  photoSize: PhotoSize,
+): CropArea {
+  const aspect = photoSize.widthInches / photoSize.heightInches;
+  const imageAspect = image.width / image.height;
+
+  if (imageAspect > aspect) {
+    const width = image.height * aspect;
+    return {
+      x: Math.round((image.width - width) / 2),
+      y: 0,
+      width: Math.round(width),
+      height: image.height,
+    };
+  }
+
+  const height = image.width / aspect;
+  return {
+    x: 0,
+    y: Math.round((image.height - height) / 2),
+    width: image.width,
+    height: Math.round(height),
+  };
+}
+
 export function isLowPrintQuality(
   crop: CropArea | null,
   photoSize: PhotoSize,

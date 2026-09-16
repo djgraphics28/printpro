@@ -36,6 +36,15 @@ export function useWorkstationShortcuts() {
         return;
       }
 
+      if (event.key === "[" || event.key === "]") {
+        event.preventDefault();
+        dispatch({
+          type: "STEP_ACTIVE_PHOTO",
+          delta: event.key === "]" ? 1 : -1,
+        });
+        return;
+      }
+
       if (event.key.toLowerCase() === "n") {
         event.preventDefault();
         requestNewSession();

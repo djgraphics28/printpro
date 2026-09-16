@@ -4,7 +4,8 @@ type SheetVariant = "preview" | "print";
 
 type A4SheetProps = {
   layout: A4Layout;
-  imageUrl: string | null;
+  /** Cropped image URL per photo id. Slots without one render a placeholder. */
+  images: Record<string, string>;
   variant?: SheetVariant;
 };
 
@@ -108,7 +109,7 @@ function PhotoCell({
           </div>
         )}
       </div>
-      {layout.showName && layout.name ? (
+      {layout.showName && slot.name ? (
         <div
           className="a4-name"
           style={{
@@ -135,14 +136,14 @@ function PhotoCell({
               "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
           }}
         >
-          {layout.name}
+          {slot.name}
         </div>
       ) : null}
     </>
   );
 }
 
-export function A4Sheet({ layout, imageUrl, variant = "print" }: A4SheetProps) {
+export function A4Sheet({ layout, images, variant = "print" }: A4SheetProps) {
   const isPrint = variant === "print";
 
   return (
@@ -162,7 +163,7 @@ export function A4Sheet({ layout, imageUrl, variant = "print" }: A4SheetProps) {
           key={slot.index}
           slot={slot}
           layout={layout}
-          imageUrl={imageUrl}
+          imageUrl={images[slot.photoId] ?? null}
           variant={variant}
         />
       ))}

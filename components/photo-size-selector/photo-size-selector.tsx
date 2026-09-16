@@ -7,14 +7,18 @@ import { cn } from "@/lib/utils";
 
 export function PhotoSizeSelector() {
   const { state, dispatch } = useWorkstation();
+  const firstShortcut = PHOTO_SIZES[0]?.shortcut;
+  const lastShortcut = PHOTO_SIZES[PHOTO_SIZES.length - 1]?.shortcut;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-slate-700">Photo Size</p>
-        <p className="text-[11px] text-slate-400">Presets 1–3</p>
+        <p className="text-[11px] text-slate-400">
+          Presets {firstShortcut}–{lastShortcut}
+        </p>
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {PHOTO_SIZES.map((size) => {
           const selected = state.photoSizeId === size.id;
           return (

@@ -1,5 +1,5 @@
 import type { A4Layout } from "@/types/layout";
-import type { CroppedImage, CustomerImage } from "@/types/photo";
+import type { PhotoEntry } from "@/types/photo";
 
 export type ValidationIssue = {
   code:
@@ -14,15 +14,14 @@ export type ValidationIssue = {
 };
 
 export function validatePrintReady(input: {
-  image: CustomerImage | null;
-  cropped: CroppedImage | null;
+  photos: PhotoEntry[];
   processing: boolean;
   layout: A4Layout;
-  lowQuality: boolean;
+  lowQualityCount: number;
 }): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
-  if (!input.image) {
+  if (input.photos.length === 0) {
     issues.push({
       code: "no-image",
       level: "error",
@@ -31,13 +30,20 @@ export function validatePrintReady(input: {
     return issues;
   }
 
-  if (input.processing || !input.cropped) {
+  const pending = input.photos.filter((photo) => !photo.cropped).length;
+  const many = input.photos.length > 1;
+
+  if (input.processing || pending > 0) {
     issues.push({
       code: input.processing ? "processing" : "crop-pending",
       level: "error",
       message: input.processing
-        ? "Please wait — removing the background."
-        : "Please wait for the photo to finish processing.",
+        ? many
+          ? "Please wait — preparing the photos."
+          : "Please wait — removing the background."
+        : many
+          ? "Please wait for every photo to finish processing."
+          : "Please wait for the photo to finish processing.",
     });
   }
 
@@ -45,17 +51,19 @@ export function validatePrintReady(input: {
     issues.push({
       code: "overflow",
       level: "error",
-      message:
-        "Too many photos for one A4 sheet. Please reduce the quantity or use another sheet.",
+      message: many
+        ? "Too many photos for one A4 sheet. Please reduce the quantities or use another sheet."
+        : "Too many photos for one A4 sheet. Please reduce the quantity or use another sheet.",
     });
   }
 
-  if (input.lowQuality) {
+  if (input.lowQualityCount > 0) {
     issues.push({
       code: "low-quality",
       level: "warning",
-      message:
-        "This image may appear low quality when printed. For best results, use a higher-resolution photo.",
+      message: many
+        ? `${input.lowQualityCount} of ${input.photos.length} photos may appear low quality when printed. For best results, use higher-resolution photos.`
+        : "This image may appear low quality when printed. For best results, use a higher-resolution photo.",
     });
   }
 

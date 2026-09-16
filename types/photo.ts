@@ -7,6 +7,8 @@ export type PhotoSize = {
   preferredColumns: number;
   shortcut: string;
   dimensionLabel: string;
+  /** Whether several different photos may share one sheet at this size. */
+  allowsMultiplePhotos: boolean;
 };
 
 export type CropArea = {
@@ -43,4 +45,17 @@ export type CroppedImage = {
   url: string;
   width: number;
   height: number;
+};
+
+/**
+ * One uploaded customer photo. Several entries share a single A4 sheet, each
+ * with its own crop, copy count, and printed name.
+ */
+export type PhotoEntry = {
+  id: string;
+  image: CustomerImage;
+  transform: PhotoTransform;
+  cropped: CroppedImage | null;
+  quantity: number;
+  name: string;
 };
