@@ -1,7 +1,6 @@
 "use client";
 
-import { IdCard } from "lucide-react";
-
+import { AppHeader } from "@/components/app-shell/app-header";
 import { A4Preview } from "@/components/a4-preview/a4-preview";
 import { A4PrintLayout } from "@/components/a4-print-layout/a4-print-layout";
 import { CuttingGuideSettings } from "@/components/cutting-guide-settings/cutting-guide-settings";
@@ -32,18 +31,9 @@ function WorkstationShell() {
   return (
     <>
       <div className="app-shell flex min-h-dvh flex-col bg-[#eceef2] text-slate-900 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white px-4 py-3 md:px-6 lg:static">
-          <div className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-slate-900 text-white">
-              <IdCard className="size-5" />
-            </span>
-            <div>
-              <p className="text-sm font-semibold tracking-tight">PrintPro</p>
-              <p className="text-xs text-slate-500">ID Photo Printing</p>
-            </div>
-          </div>
+        <AppHeader>
           <SessionReset />
-        </header>
+        </AppHeader>
 
         <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col lg:min-h-0 lg:flex-row">
           <aside className="order-2 w-full border-t border-slate-200/80 bg-white lg:order-1 lg:h-full lg:w-[380px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-r">

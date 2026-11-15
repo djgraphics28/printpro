@@ -1,5 +1,5 @@
-import { PhotoWorkstation } from "@/components/workstation/photo-workstation";
+import { AppLauncher } from "@/components/launcher/app-launcher";
 
 export default function Home() {
-  return <PhotoWorkstation />;
+  return <AppLauncher />;
 }

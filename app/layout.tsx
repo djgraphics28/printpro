@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PrintPro — ID Photo Printing",
+  title: "PrintPro",
   description:
-    "Rush ID photo layout and A4 printing workstation. Crop, arrange, and print 2x2, 1x1, passport, and wallet photos at true physical size.",
+    "Printing workstation: ID photo layouts and Wi-Fi voucher sheets.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
