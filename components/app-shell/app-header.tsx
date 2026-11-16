@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils";
 /** Shared top bar for every tool: back to launcher, app switcher, page actions. */
 export function AppHeader({ children }: { children?: ReactNode }) {
   const pathname = usePathname();
-  const current = APPS.find((a) => a.href === pathname);
+  // Sub-pages (like /pos/admin) belong to their tool.
+  const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const current = APPS.find((a) => isCurrent(a.href));
   const Icon = current?.icon;
 
   return (
@@ -42,7 +44,7 @@ export function AppHeader({ children }: { children?: ReactNode }) {
         <nav className="hidden items-center gap-1 rounded-lg bg-slate-100 p-1 md:flex">
           {APPS.map((app) => {
             const AppIcon = app.icon;
-            const active = app.href === pathname;
+            const active = isCurrent(app.href);
             return (
               <Link
                 key={app.id}

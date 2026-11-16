@@ -50,7 +50,7 @@ export function AppLauncher() {
 
   return (
     <div className="h-dvh overflow-y-auto bg-[#eceef2] text-slate-900">
-      <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col px-4 py-6 md:px-8 md:py-10">
+      <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col px-4 py-6 md:px-8 md:py-10">
         <header className="mb-12 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-slate-900 text-white">
@@ -72,7 +72,7 @@ export function AppLauncher() {
           <p className="mt-2 text-slate-600">Choose a tool to get started.</p>
         </section>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {APPS.map((app, i) => {
             const Icon = app.icon;
             return (
@@ -105,7 +105,7 @@ export function AppLauncher() {
         </div>
 
         <p className="mt-auto hidden pt-10 text-center text-xs text-slate-400 md:block">
-          Tip: press <Kbd>1</Kbd> or <Kbd>2</Kbd> to open a tool.
+          Tip: press <Kbd>1</Kbd>, <Kbd>2</Kbd> or <Kbd>3</Kbd> to open a tool.
         </p>
       </div>
     </div>

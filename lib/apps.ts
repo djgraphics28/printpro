@@ -1,4 +1,4 @@
-import { Camera, type LucideIcon, Ticket } from "lucide-react";
+import { Camera, type LucideIcon, ShoppingCart, Ticket } from "lucide-react";
 
 export type AppDef = {
   id: string;
@@ -30,5 +30,14 @@ export const APPS: AppDef[] = [
     icon: Ticket,
     tint: "bg-amber-100 text-amber-700",
     glow: "group-hover:shadow-amber-200/70",
+  },
+  {
+    id: "pos",
+    href: "/pos",
+    name: "Printing POS",
+    description: "Record sales at the counter. The admin reviews totals and manages the price list.",
+    icon: ShoppingCart,
+    tint: "bg-emerald-100 text-emerald-700",
+    glow: "group-hover:shadow-emerald-200/70",
   },
 ];
