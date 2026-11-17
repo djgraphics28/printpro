@@ -29,7 +29,18 @@ function SectionTitle({ children }: { children: string }) {
   return <p className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">{children}</p>;
 }
 
-export function PosHeaderActions({ role, onAdminPage = false }: { role: Role; onAdminPage?: boolean }) {
+export function PosHeaderActions({
+  role,
+  onAdminPage = false,
+  base = "/pos",
+  logoutAction = logout,
+}: {
+  role: Role;
+  onAdminPage?: boolean;
+  /** The tool these buttons belong to; the Sari-Sari Store passes its own. */
+  base?: string;
+  logoutAction?: () => Promise<void>;
+}) {
   return (
     <>
       <span
@@ -43,19 +54,19 @@ export function PosHeaderActions({ role, onAdminPage = false }: { role: Role; on
       {role === "admin" ? (
         <Button asChild variant="outline">
           {onAdminPage ? (
-            <Link href="/pos">
+            <Link href={base}>
               <ShoppingCart />
               <span className="hidden sm:inline">Enter sales</span>
             </Link>
           ) : (
-            <Link href="/pos/admin">
+            <Link href={`${base}/admin`}>
               <Settings />
               <span className="hidden sm:inline">Manage</span>
             </Link>
           )}
         </Button>
       ) : null}
-      <form action={logout}>
+      <form action={logoutAction}>
         <Button type="submit" variant="ghost" title="Log out">
           <LogOut />
           <span className="hidden sm:inline">Log out</span>

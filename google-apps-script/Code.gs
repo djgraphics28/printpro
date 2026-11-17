@@ -1,5 +1,6 @@
 /**
- * Database for the PrintPro POS: the sales and the price list.
+ * Database for the PrintPro POS (the sales and the price list) and for the
+ * Sari-Sari Store daily sales.
  *
  * Paste this whole file into the sheet's script editor (Extensions → Apps Script),
  * set SECRET below, then Deploy → New deployment → Web app
@@ -11,8 +12,11 @@ const SECRET = "PASTE_YOUR_GOOGLE_SCRIPT_SECRET_HERE";
 
 const DEFAULT_SALES_TAB = "Sales";
 const DEFAULT_SERVICES_TAB = "Services";
+const DEFAULT_STORE_TAB = "Store Daily Sales";
 const SALES_HEADER = ["ID", "Sold At", "Receipt", "Item", "Qty", "Unit Price", "Total", "Payment", "Customer", "Note", "Entered By"];
 const SERVICES_HEADER = ["Item", "Price"];
+const STORE_CATEGORIES = ["GCash", "Groceries", "Softdrinks", "Ice", "Eggs"];
+const STORE_HEADER = ["Date"].concat(STORE_CATEGORIES, ["Total", "Note", "Entered By", "Updated At"]);
 
 /** Opening the web app URL in a browser shows this, so you can tell it is deployed. */
 function doGet() {
@@ -36,6 +40,7 @@ function handle(req) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const salesTab = req.salesTab || DEFAULT_SALES_TAB;
   const servicesTab = req.servicesTab || DEFAULT_SERVICES_TAB;
+  const storeTab = req.storeTab || DEFAULT_STORE_TAB;
   if (req.action === "ping") return { ok: true, title: ss.getName() };
 
   // One request at a time, so two sales saved together can't clash.
@@ -44,12 +49,12 @@ function handle(req) {
   try {
     switch (req.action) {
       case "listSales": {
-        const sheet = getSalesTab(ss, salesTab);
+        const sheet = getTab(ss, salesTab, SALES_HEADER);
         const last = sheet.getLastRow();
         return { ok: true, rows: last < 2 ? [] : sheet.getRange(2, 1, last - 1, SALES_HEADER.length).getValues() };
       }
       case "addSales": {
-        const sheet = getSalesTab(ss, salesTab);
+        const sheet = getTab(ss, salesTab, SALES_HEADER);
         const rows = req.sales.map(function (s) {
           return [text(s.id), text(s.soldAt), text(s.receipt), text(s.item), Number(s.qty), Number(s.price), Number(s.total), text(s.payment), text(s.customer), text(s.note), text(s.enteredBy)];
         });
@@ -57,7 +62,7 @@ function handle(req) {
         return { ok: true };
       }
       case "updateSale": {
-        const sheet = getSalesTab(ss, salesTab);
+        const sheet = getTab(ss, salesTab, SALES_HEADER);
         const row = findRow(sheet, req.id);
         if (!row) return { ok: true, found: false };
         const d = req.data;
@@ -68,7 +73,7 @@ function handle(req) {
         return { ok: true, found: true };
       }
       case "deleteSale": {
-        const sheet = getSalesTab(ss, salesTab);
+        const sheet = getTab(ss, salesTab, SALES_HEADER);
         const row = findRow(sheet, req.id);
         if (!row) return { ok: true, found: false };
         sheet.deleteRow(row);
@@ -93,6 +98,29 @@ function handle(req) {
         sheet.setFrozenRows(1);
         return { ok: true };
       }
+      case "listStoreDays": {
+        const sheet = getTab(ss, storeTab, STORE_HEADER);
+        const last = sheet.getLastRow();
+        return { ok: true, rows: last < 2 ? [] : sheet.getRange(2, 1, last - 1, STORE_HEADER.length).getValues() };
+      }
+      case "saveStoreDay": {
+        // One row per day: saving a day that is already there replaces its row.
+        const sheet = getTab(ss, storeTab, STORE_HEADER);
+        const d = req.day;
+        const values = [text(d.day)]
+          .concat(STORE_CATEGORIES.map(function (c) { return Number(d.amounts[c]) || 0; }))
+          .concat([Number(d.total), text(d.note), text(d.enteredBy), text(d.updatedAt)]);
+        const row = findRow(sheet, d.day) || sheet.getLastRow() + 1;
+        sheet.getRange(row, 1, 1, STORE_HEADER.length).setValues([values]);
+        return { ok: true };
+      }
+      case "deleteStoreDay": {
+        const sheet = getTab(ss, storeTab, STORE_HEADER);
+        const row = findRow(sheet, req.day);
+        if (!row) return { ok: true, found: false };
+        sheet.deleteRow(row);
+        return { ok: true, found: true };
+      }
       default:
         return { ok: false, error: "unknown-action" };
     }
@@ -101,17 +129,17 @@ function handle(req) {
   }
 }
 
-/** Returns the Sales tab, creating it and its header row when missing. */
-function getSalesTab(ss, name) {
+/** Returns the tab with this name, creating it and its header row when missing. */
+function getTab(ss, name, header) {
   const sheet = ss.getSheetByName(name) || ss.insertSheet(name);
   if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, SALES_HEADER.length).setValues([SALES_HEADER]).setFontWeight("bold");
+    sheet.getRange(1, 1, 1, header.length).setValues([header]).setFontWeight("bold");
     sheet.setFrozenRows(1);
   }
   return sheet;
 }
 
-/** Sheet row number of the sale with this ID, or 0. */
+/** Sheet row number of the row with this ID in column A, or 0. */
 function findRow(sheet, id) {
   const last = sheet.getLastRow();
   if (last < 2 || !id) return 0;

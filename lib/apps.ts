@@ -1,4 +1,4 @@
-import { Camera, type LucideIcon, ShoppingCart, Ticket } from "lucide-react";
+import { Camera, type LucideIcon, ShoppingCart, Store, Ticket } from "lucide-react";
 
 export type AppDef = {
   id: string;
@@ -39,5 +39,14 @@ export const APPS: AppDef[] = [
     icon: ShoppingCart,
     tint: "bg-emerald-100 text-emerald-700",
     glow: "group-hover:shadow-emerald-200/70",
+  },
+  {
+    id: "store",
+    href: "/store",
+    name: "Sari-Sari Store",
+    description: "Track the store's daily sales: GCash, groceries, softdrinks, ice and eggs.",
+    icon: Store,
+    tint: "bg-rose-100 text-rose-700",
+    glow: "group-hover:shadow-rose-200/70",
   },
 ];

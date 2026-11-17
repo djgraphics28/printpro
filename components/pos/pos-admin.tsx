@@ -27,9 +27,9 @@ import {
 import { cn } from "@/lib/utils";
 
 type Tab = "sales" | "prices";
-type Range = "today" | "week" | "month" | "all" | "custom";
+export type Range = "today" | "week" | "month" | "all" | "custom";
 
-const RANGES: { id: Range; label: string }[] = [
+export const RANGES: { id: Range; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "week", label: "Last 7 days" },
   { id: "month", label: "This month" },
@@ -40,7 +40,7 @@ const RANGES: { id: Range; label: string }[] = [
 const selectClass =
   "h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200";
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+export function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="text-xs text-slate-500">{label}</p>
@@ -57,15 +57,19 @@ function csvCell(value: string | number) {
   return `"${text.replaceAll('"', '""')}"`;
 }
 
-function downloadCsv(rows: Sale[], name: string) {
-  const header = ["Date", "Time", "Receipt", "Item", "Qty", "Unit Price", "Total", "Payment", "Customer", "Note", "Entered By"];
-  const lines = rows.map((s) =>
-    [dayKey(s.soldAt), formatTime(s.soldAt), s.receipt, s.item, s.qty, s.price, s.total, s.payment, s.customer, s.note, s.enteredBy]
-      .map(csvCell)
-      .join(","),
-  );
+/** The first and last day (YYYY-MM-DD) a range covers; empty strings mean no limit. */
+export function rangeDays(range: Range, today: string, from: string, to: string): [string, string] {
+  if (range === "today") return [today, today];
+  if (range === "week") return [shiftDay(today, -6), today];
+  if (range === "month") return [`${today.slice(0, 7)}-01`, today];
+  return range === "custom" ? [from, to] : ["", ""];
+}
+
+/** Downloads a table as a CSV file. */
+export function downloadTable(header: string[], rows: (string | number)[][], name: string) {
+  const lines = [header, ...rows].map((row) => row.map(csvCell).join(","));
   // The BOM makes Excel read the file as UTF-8.
-  const blob = new Blob(["﻿" + [header.map(csvCell).join(","), ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -166,16 +170,7 @@ function SalesPanel({ sales, today }: { sales: Sale[]; today: string }) {
   const [editing, setEditing] = useState<Sale | null>(null);
   const [deleting, setDeleting] = useState<Sale | null>(null);
 
-  const [start, end] =
-    range === "today"
-      ? [today, today]
-      : range === "week"
-        ? [shiftDay(today, -6), today]
-        : range === "month"
-          ? [`${today.slice(0, 7)}-01`, today]
-          : range === "custom"
-            ? [from, to]
-            : ["", ""];
+  const [start, end] = rangeDays(range, today, from, to);
 
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   const rows = sales.filter((s) => {
@@ -233,7 +228,13 @@ function SalesPanel({ sales, today }: { sales: Sale[]; today: string }) {
           type="button"
           variant="secondary"
           disabled={rows.length === 0}
-          onClick={() => downloadCsv(rows, `sales-${start || "all"}${end && end !== start ? `-to-${end}` : ""}.csv`)}
+          onClick={() =>
+            downloadTable(
+              ["Date", "Time", "Receipt", "Item", "Qty", "Unit Price", "Total", "Payment", "Customer", "Note", "Entered By"],
+              rows.map((s) => [dayKey(s.soldAt), formatTime(s.soldAt), s.receipt, s.item, s.qty, s.price, s.total, s.payment, s.customer, s.note, s.enteredBy]),
+              `sales-${start || "all"}${end && end !== start ? `-to-${end}` : ""}.csv`,
+            )
+          }
         >
           <Download />
           Export CSV

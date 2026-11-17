@@ -24,6 +24,7 @@ const SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL?.trim();
 const SECRET = process.env.GOOGLE_SCRIPT_SECRET?.trim();
 const SALES_TAB = process.env.POS_SALES_TAB?.trim() || "Sales";
 const SERVICES_TAB = process.env.POS_SERVICES_TAB?.trim() || "Services";
+export const STORE_TAB = process.env.STORE_SALES_TAB?.trim() || "Store Daily Sales";
 
 export const usingGoogleSheets = Boolean(SCRIPT_URL && SECRET);
 
@@ -45,17 +46,17 @@ export const DEFAULT_SERVICES: Service[] = [
 class ScriptError extends Error {}
 
 type ScriptReply = { ok: boolean; error?: string };
-type Cell = string | number | boolean | null;
+export type Cell = string | number | boolean | null;
 
 /** Calls the Apps Script web app. Throws ScriptError when it can't be used. */
-async function script<T>(action: string, payload: object = {}): Promise<T> {
+export async function script<T>(action: string, payload: object = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(SCRIPT_URL!, {
       method: "POST",
       // text/plain: Apps Script reads the body itself, and Google redirects the reply.
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ secret: SECRET, salesTab: SALES_TAB, servicesTab: SERVICES_TAB, action, ...payload }),
+      body: JSON.stringify({ secret: SECRET, salesTab: SALES_TAB, servicesTab: SERVICES_TAB, storeTab: STORE_TAB, action, ...payload }),
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),
     });
@@ -98,9 +99,9 @@ async function script<T>(action: string, payload: object = {}): Promise<T> {
   return reply;
 }
 
-const str = (v: Cell | undefined) => String(v ?? "").trim();
+export const str = (v: Cell | undefined) => String(v ?? "").trim();
 // Tolerates a cell someone formatted by hand, like "₱1,250.00".
-const num = (v: Cell | undefined) => (typeof v === "number" ? v : Number(str(v).replace(/[₱,\s]/g, "")) || 0);
+export const num = (v: Cell | undefined) => (typeof v === "number" ? v : Number(str(v).replace(/[₱,\s]/g, "")) || 0);
 
 /** Sales tab columns: ID | Sold At | Receipt | Item | Qty | Unit Price | Total | Payment | Customer | Note | Entered By */
 function rowToSale(v: Cell[]): Sale {
@@ -131,9 +132,12 @@ export type SheetsStatus = {
 
 /**
  * Tests the Google Sheets connection for real (it calls the Apps Script), and
- * says what is wrong when it fails. Never throws.
+ * says what is wrong when it fails. Never throws. `tabs` describes the tabs the
+ * calling tool uses, for the "connected" message.
  */
-export async function checkSheetsConnection(): Promise<SheetsStatus> {
+export async function checkSheetsConnection(
+  tabs = `${SALES_TAB} for sales, ${SERVICES_TAB} for the price list`,
+): Promise<SheetsStatus> {
   const local = " Sales are saved to a local file until this is fixed.";
   if (!SCRIPT_URL && !SECRET) {
     return { connected: false, message: "Google Sheets is not set up. Sales are saved to a local file on this computer." };
@@ -153,7 +157,7 @@ export async function checkSheetsConnection(): Promise<SheetsStatus> {
     const { title } = await script<{ title: string }>("ping");
     return {
       connected: true,
-      message: `Connected to "${title}" (tabs: ${SALES_TAB} for sales, ${SERVICES_TAB} for the price list).`,
+      message: `Connected to "${title}" (tabs: ${tabs}).`,
     };
   } catch (err) {
     return { connected: false, message: err instanceof ScriptError ? err.message : "Couldn't check the connection." };
@@ -170,14 +174,14 @@ export function describeStoreError(err: unknown): string {
 const SALES_FILE = path.join(process.cwd(), ".data", "pos-sales.json");
 const SERVICES_FILE = path.join(process.cwd(), ".data", "pos-services.json");
 
-async function readJson<T>(file: string, fallback: T): Promise<T> {
+export async function readJson<T>(file: string, fallback: T): Promise<T> {
   try {
     return JSON.parse(await fs.readFile(file, "utf8"));
   } catch {
     return fallback;
   }
 }
-async function writeJson(file: string, data: unknown) {
+export async function writeJson(file: string, data: unknown) {
   await fs.mkdir(path.dirname(file), { recursive: true });
   await fs.writeFile(file, JSON.stringify(data, null, 2));
 }

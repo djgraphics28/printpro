@@ -87,3 +87,28 @@ so keep `.env.local` private and never commit it.
 
 On a host like Vercel, add the same variables in the project's environment settings.
 Google Sheets must be connected there (the local file is only for development).
+
+## Sari-Sari Store daily sales
+
+A separate tool with its own logins, for writing down the store's whole sales of
+each day in five categories: GCash, Groceries, Softdrinks, Ice and Eggs. It is a
+simple daily sheet, not a point of sale: one amount per category per day.
+
+| Page | What it is |
+| --- | --- |
+| `/store` | Type the day's total per category and save. Saving the same day again replaces it |
+| `/store/admin` | Admin only: every day with totals, add, edit, delete, export CSV |
+| `/store/login` | One password box. The cashier password opens `/store`; the admin password opens everything |
+
+- `STORE_POS_CASHIER_PASSWORD` and `STORE_POS_ADMIN_PASSWORD` in `.env.local` — the two
+  store logins. They must be different from each other. The Printing POS passwords
+  don't open the store, and the store passwords don't open the Printing POS.
+- The sales go to a `Store Daily Sales` tab in the same Google Sheet (created on the
+  first save), one row per day, or to `.data/store-daily.json` while Google Sheets is
+  not connected.
+- The cashier can enter or correct today and the 6 days before. The admin can enter
+  any past date.
+
+The store needs the current `google-apps-script/Code.gs`. If your script was deployed
+before the store was added, paste the file again (keep your `SECRET` line) and publish
+a new version as described above.

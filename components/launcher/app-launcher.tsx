@@ -72,7 +72,7 @@ export function AppLauncher() {
           <p className="mt-2 text-slate-600">Choose a tool to get started.</p>
         </section>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           {APPS.map((app, i) => {
             const Icon = app.icon;
             return (
@@ -80,7 +80,7 @@ export function AppLauncher() {
                 key={app.id}
                 href={app.href}
                 className={cn(
-                  "group relative flex min-h-56 flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm outline-none transition duration-200",
+                  "group relative flex min-h-48 flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm outline-none transition duration-200",
                   "hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-slate-400 active:translate-y-0 active:shadow-md",
                   app.glow,
                 )}
@@ -105,7 +105,7 @@ export function AppLauncher() {
         </div>
 
         <p className="mt-auto hidden pt-10 text-center text-xs text-slate-400 md:block">
-          Tip: press <Kbd>1</Kbd>, <Kbd>2</Kbd> or <Kbd>3</Kbd> to open a tool.
+          Tip: press <Kbd>1</Kbd> to <Kbd>{APPS.length}</Kbd> to open a tool.
         </p>
       </div>
     </div>
